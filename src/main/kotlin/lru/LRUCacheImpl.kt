@@ -18,6 +18,9 @@ class LRUCacheImpl<K, V>(private val capacity: Int): LRUCache<K, V> {
             node.value
         } else {
             null
+        }.apply {
+            // POST
+            assert(key !in cache || (order.head!!.key == key))
         }
     }
 
@@ -32,10 +35,11 @@ class LRUCacheImpl<K, V>(private val capacity: Int): LRUCache<K, V> {
             }
             newNode = order.pushHead(newNode)
             cache[key] = newNode
+        }.apply {
+            // POST
+            assert(order.head!!.key == key)
         }
     }
-
-
 
     private inner class Node<K, V>(var key: K, var value: V) {
         var prev: Node<K, V>? = null
@@ -43,9 +47,9 @@ class LRUCacheImpl<K, V>(private val capacity: Int): LRUCache<K, V> {
     }
 
     private inner class DoublyLinkedList<V> {
-        private var head: Node<K, V>? = null
-        private var tail: Node<K, V>? = null
-        private var size: Int = 0
+        var head: Node<K, V>? = null
+        var tail: Node<K, V>? = null
+        var size: Int = 0
 
         fun pushHead(newNode: Node<K, V>): Node<K, V> {
             newNode.prev = null
