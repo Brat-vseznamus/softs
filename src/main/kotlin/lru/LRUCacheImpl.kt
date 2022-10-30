@@ -11,6 +11,7 @@ class LRUCacheImpl<K, V>(private val capacity: Int): LRUCache<K, V> {
     }
 
     override fun get(key: K): V? {
+        assert(order.size <= capacity)
         return if (key in cache) {
             val node = cache[key]!!
             order.remove(node)
@@ -24,10 +25,12 @@ class LRUCacheImpl<K, V>(private val capacity: Int): LRUCache<K, V> {
                 is head of list (it has maximum priority in order)
              */
             assert(key !in cache || (order.head!!.key == key))
+            assert(order.size <= capacity)
         }
     }
 
     override fun put(key: K, value: V) {
+        assert(order.size <= capacity)
         if (key in cache) {
             cache[key]!!.value = value
             val node = cache[key]!!
@@ -48,6 +51,7 @@ class LRUCacheImpl<K, V>(private val capacity: Int): LRUCache<K, V> {
          */
         assert(order.head!!.key == key)
         assert(order.head!!.value == value)
+        assert(order.size <= capacity)
     }
 
     private inner class Node<K, V>(var key: K, var value: V) {
