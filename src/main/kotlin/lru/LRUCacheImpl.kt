@@ -19,7 +19,10 @@ class LRUCacheImpl<K, V>(private val capacity: Int): LRUCache<K, V> {
         } else {
             null
         }.apply {
-            // POST
+            /* POST:
+                key not in cache or after get node with such key
+                is head of list (it has maximum priority in order)
+             */
             assert(key !in cache || (order.head!!.key == key))
         }
     }
@@ -27,6 +30,9 @@ class LRUCacheImpl<K, V>(private val capacity: Int): LRUCache<K, V> {
     override fun put(key: K, value: V) {
         if (key in cache) {
             cache[key]!!.value = value
+            val node = cache[key]!!
+            order.remove(node)
+            order.pushHead(node)
         } else {
             var newNode = Node(key, value)
             if (capacity == cache.size) {
@@ -35,10 +41,13 @@ class LRUCacheImpl<K, V>(private val capacity: Int): LRUCache<K, V> {
             }
             newNode = order.pushHead(newNode)
             cache[key] = newNode
-        }.apply {
-            // POST
-            assert(order.head!!.key == key)
         }
+        /* POST:
+            node with such key is head of list
+            and has such value
+         */
+        assert(order.head!!.key == key)
+        assert(order.head!!.value == value)
     }
 
     private inner class Node<K, V>(var key: K, var value: V) {
