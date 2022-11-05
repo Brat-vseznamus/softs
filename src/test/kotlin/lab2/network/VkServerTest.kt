@@ -38,7 +38,28 @@ internal class VkServerTest {
     }
 
     @Test
-    fun `network reject request`(wmRuntimeInfo: WireMockRuntimeInfo) {
+    fun `network correctly reacts for request but json have unknown properties`(wmRuntimeInfo: WireMockRuntimeInfo) {
+        val expectedResult: Int = 10
+
+        stubFor(any(urlMatching("/${VkServer.VK_NEWSFEED_SEARCH_METHOD}?.*"))
+            .willReturn(ok(
+                """
+                    {
+                        "response": {
+                            "total_count": $expectedResult,
+                            "k2": "v2"
+                        },
+                        "k1": "v1"
+                    }
+                """.trimIndent()
+            )))
+
+        val actualResult = vkServer.getStats("", 0, 0)
+        assertEquals(actualResult, expectedResult)
+    }
+
+    @Test
+    fun `network reject request or unexpectedly responding`(wmRuntimeInfo: WireMockRuntimeInfo) {
         stubFor(any(urlMatching("/${VkServer.VK_NEWSFEED_SEARCH_METHOD}?.*"))
             .willReturn(ok(
                 """
