@@ -1,4 +1,4 @@
-package lru
+package lab1.lru
 
 class LRUCacheImpl<K, V>(private val capacity: Int): LRUCache<K, V> {
     private val cache: MutableMap<K, Node<K, V>>

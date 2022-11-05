@@ -1,4 +1,4 @@
-package lru
+package lab1.lru
 
 interface LRUCache<K, V> {
     fun get(key: K): V?

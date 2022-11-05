@@ -1,4 +1,4 @@
-package lru
+package lab1.lru
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
