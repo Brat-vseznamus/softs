@@ -1,9 +1,6 @@
 package lab3.servlet
 
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.*
 import org.mockito.Mockito.*
 import java.io.BufferedWriter
 import java.io.PrintWriter
@@ -51,7 +48,7 @@ internal class ServerTest {
 
         val body = readResponse()
 
-        assert(GET_MATCHER(0).matches(body))
+        assert(getMatcher(0).matches(body))
     }
 
     @Test
@@ -92,7 +89,7 @@ internal class ServerTest {
 
         val body = readResponse()
 
-        assert(GET_MATCHER(1).matches(body))
+        assert(getMatcher(1).matches(body))
         assertContentEquals(
             extractNameAndPrices(body, 1),
             listOf(name to price)
@@ -140,10 +137,46 @@ internal class ServerTest {
 
         val body = readResponse()
 
-        assert(GET_MATCHER(2).matches(body))
+        assert(getMatcher(2).matches(body))
         assertContentEquals(
             extractNameAndPrices(body, 2),
             listOf("k0" to "0", "k1" to "1")
+        )
+    }
+
+    // right now can be added without name because there is no checking for null 
+    @Test
+    fun `can't add without all required params`() {
+        val add = AddProductServlet()
+
+        val req1 = request(mapOf())
+        val res1 = response()
+
+        assertThrows<Exception> {
+            add.doGet(req1, res1).apply {
+                res1.writer.flush()
+                res1.writer.close()
+            }
+        }
+
+        val get = GetProductsServlet()
+
+        val req2 = request(mapOf())
+        val res2 = response()
+
+        assertDoesNotThrow {
+            get.doGet(req2, res2).apply {
+                res2.writer.flush()
+                res2.writer.close()
+            }
+        }
+
+        val body = readResponse()
+
+        assert(getMatcher(0).matches(body))
+        assertContentEquals(
+            extractNameAndPrices(body, 0),
+            listOf()
         )
     }
 
@@ -154,21 +187,21 @@ internal class ServerTest {
     }
 
     companion object {
-        val GET_MATCHER = {numberOfRows: Int ->
-            Regex("\\s*<html>" +
+        val DB_PATH: Path = Path.of("test.db")
+        val OUT_PATH: Path = Path.of("out.txt")
+        
+        fun getMatcher(numberOfRows: Int): Regex {
+            return Regex("\\s*<html>" +
                     "\\s*<body>" +
                     "(\\s*(\\w+)\t(\\d+)</br>)".repeat(numberOfRows) +
                     "\\s*</body>" +
                     "\\s*</html>\\s*")
         }
-
-        val DB_PATH: Path = Path.of("test.db")
-        val OUT_PATH: Path = Path.of("out.txt")
-
+        
         fun extractNameAndPrices(response: String, expectedNumberOfRows: Int) : List<Pair<String, String>>? {
             val list: MutableList<Pair<String, String>> = mutableListOf()
             try {
-                val parseResult = GET_MATCHER(expectedNumberOfRows)
+                val parseResult = getMatcher(expectedNumberOfRows)
                     .find(response)!!
                     .destructured
                     .toList()
