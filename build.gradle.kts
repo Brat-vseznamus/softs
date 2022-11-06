@@ -21,6 +21,7 @@ dependencies {
     implementation("javax.servlet:javax.servlet-api:3.1.0")
     implementation("org.eclipse.jetty:jetty-servlet:9.4.21.v20190926")
     implementation("org.eclipse.jetty:jetty-server:9.4.21.v20190926")
+    implementation("org.xerial:sqlite-jdbc:3.8.11.2")
 }
 
 tasks.test {
@@ -32,5 +33,5 @@ tasks.withType<KotlinCompile> {
 }
 
 application {
-    mainClass.set("MainKt")
+    mainClass.set("lab3.Main")
 }
