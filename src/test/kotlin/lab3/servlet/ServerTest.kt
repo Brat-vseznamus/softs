@@ -91,8 +91,8 @@ internal class ServerTest {
 
         assert(getMatcher(1).matches(body))
         assertContentEquals(
-            extractNameAndPrices(body, 1),
-            listOf(name to price)
+            listOf(name to price),
+            extractNameAndPrices(body, 1)
         )
     }
 
@@ -139,8 +139,8 @@ internal class ServerTest {
 
         assert(getMatcher(2).matches(body))
         assertContentEquals(
-            extractNameAndPrices(body, 2),
-            listOf("k0" to "0", "k1" to "1")
+            listOf("k0" to "0", "k1" to "1"),
+            extractNameAndPrices(body, 2)
         )
     }
 
@@ -175,10 +175,42 @@ internal class ServerTest {
 
         assert(getMatcher(0).matches(body))
         assertContentEquals(
-            extractNameAndPrices(body, 0),
-            listOf()
+            listOf(),
+            extractNameAndPrices(body, 0)
         )
     }
+
+    @Test
+    fun `return 'unknown command' for query without param or param value is unknown`() {
+        val query = QueryServlet()
+
+        val req1 = request(mapOf())
+        val res1 = response()
+
+        assertDoesNotThrow {
+            query.doGet(req1, res1).apply {
+                res1.writer.flush()
+                res1.writer.close()
+            }
+        }
+
+        assertEquals("Unknown command: null", readResponse())
+
+        val unknownCommandName = "unknown"
+        val req2 = request(mapOf("command" to unknownCommandName))
+        val res2 = response()
+
+        assertDoesNotThrow {
+            query.doGet(req2, res2).apply {
+                res2.writer.flush()
+                res2.writer.close()
+            }
+        }
+
+        assertEquals("Unknown command: $unknownCommandName", readResponse())
+    }
+
+
 
     @AfterEach
     fun stop() {
