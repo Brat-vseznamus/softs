@@ -16,8 +16,11 @@ dependencies {
     testImplementation(kotlin("test"))
     testImplementation("org.mockito:mockito-core:2.1.0")
     testImplementation("com.xebialabs.restito:restito:1.1.0")
-    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.4")
     testImplementation("com.github.tomakehurst:wiremock-jre8:2.35.0")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.4")
+    implementation("javax.servlet:javax.servlet-api:3.1.0")
+    implementation("org.eclipse.jetty:jetty-servlet:9.4.21.v20190926")
+    implementation("org.eclipse.jetty:jetty-server:9.4.21.v20190926")
 }
 
 tasks.test {
