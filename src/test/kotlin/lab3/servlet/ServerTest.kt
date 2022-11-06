@@ -305,6 +305,37 @@ internal class ServerTest {
         assert(expectedHTML.matches(readResponse()))
     }
 
+    @Test
+    fun `sum query command works correctly`() {
+        val command = "sum"
+        val prices = listOf(1, 2, 3)
+
+        prepareData(prices)
+
+        val expectedResult = prices.sum()
+        val query = QueryServlet()
+
+        val req = request(mapOf("command" to command))
+        val res = response()
+
+        assertDoesNotThrow {
+            query.doGet(req, res).apply {
+                res.writer.flush()
+                res.writer.close()
+            }
+        }
+
+        val expectedHTML = Regex("\\s*<html>" +
+                "\\s*<body>" +
+                "\\s*Summary price:" +
+                "\\s*$expectedResult" +
+                "\\s*</body>" +
+                "\\s*</html>\\s*")
+
+        assertEquals(HttpServletResponse.SC_OK, res.status)
+        assert(expectedHTML.matches(readResponse()))
+    }
+
     private fun prepareData(prices: List<Int>) {
         val add = AddProductServlet()
 
