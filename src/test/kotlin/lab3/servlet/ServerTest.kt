@@ -7,6 +7,8 @@ import java.io.PrintWriter
 import java.nio.file.Files
 import java.nio.file.Path
 import java.sql.DriverManager
+import java.util.Collections.max
+import java.util.Collections.min
 import java.util.stream.Collectors
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
@@ -210,6 +212,60 @@ internal class ServerTest {
         assertEquals("Unknown command: $unknownCommandName", readResponse())
     }
 
+    @Test
+    fun `min query command works correctly`() {
+        val command = "min"
+        val prices = listOf(1, 2, 3)
+
+        prepareData(prices)
+
+        val expectedResult = min(prices)
+        val query = QueryServlet()
+
+        val req = request(mapOf("command" to command))
+        val res = response()
+
+        assertDoesNotThrow {
+            query.doGet(req, res).apply {
+                res.writer.flush()
+                res.writer.close()
+            }
+        }
+
+        val expectedHTML = Regex("\\s*<html>" +
+                "\\s*<body>" +
+                "\\s*<h1>Product with min price: </h1>" +
+                "\\s*k$expectedResult\t$expectedResult</br>" +
+                "\\s*</body>" +
+                "\\s*</html>\\s*")
+
+        println(readResponse())
+        assertEquals(HttpServletResponse.SC_OK, res.status)
+        assert(expectedHTML.matches(readResponse()))
+    }
+
+    private fun prepareData(prices: List<Int>) {
+        val add = AddProductServlet()
+
+        for (i in prices) {
+            val name = "k$i"
+            val price = "$i"
+
+            val req = request(
+                mapOf(
+                    "name" to name,
+                    "price" to price
+                )
+            )
+
+            val res = response()
+
+            add.doGet(req, res).apply {
+                res.writer.flush()
+                res.writer.close()
+            }
+        }
+    }
 
 
     @AfterEach
