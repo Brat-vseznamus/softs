@@ -3,6 +3,7 @@ package lab3.servlet
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.mockito.Mockito.*
 import java.io.BufferedWriter
 import java.io.PrintWriter
@@ -22,9 +23,9 @@ internal class ServerTest {
             val sql =
                 """
                     CREATE TABLE IF NOT EXISTS PRODUCT(
-                        ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                        NAME           TEXT    NOT NULL,
-                        PRICE          INT     NOT NULL
+                        ID        INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        NAME      TEXT    NOT NULL,
+                        PRICE     INT     NOT NULL
                     )
                 """
             val stmt = c.createStatement()
@@ -34,30 +35,37 @@ internal class ServerTest {
     }
 
 
-//    @Test
-//    fun test() {
-//        val t: GetProductsServlet = GetProductsServlet()
-//
-//        val req = request(mapOf())
-//        val res = response()
-//
-//        t.doGet(req, res).apply {
-//            res.writer.flush()
-//        }
-//
-//
-//        println(readResponse())
-//    }
-//
-//    @AfterEach
-//    fun stop() {
-//        Files.deleteIfExists(DB_PATH)
-//        Files.deleteIfExists(OUT_PATH)
-//    }
+    @Test
+    fun `get from empty table returns answer with 0 rows`() {
+        val get = GetProductsServlet()
+
+        val req = request(mapOf())
+        val res = response()
+
+        assertDoesNotThrow {
+            get.doGet(req, res).apply {
+                res.writer.flush()
+            }
+        }
+
+        val body = readResponse()
+
+        assert(GET_MATCHER(0).matches(body))
+    }
+
+    @AfterEach
+    fun stop() {
+        Files.deleteIfExists(DB_PATH)
+        Files.deleteIfExists(OUT_PATH)
+    }
 
     companion object {
         val GET_MATCHER = {numberOfRows: Int ->
-            Regex("\\s*<html>\\s*<body>${"(\\s*(\\w+)\t(\\d+)</br>)".repeat(numberOfRows)}\\s*</body>\\s*</html>\\s*")
+            Regex("\\s*<html>" +
+                    "\\s*<body>" +
+                    "(\\s*(\\w+)\t(\\d+)</br>)".repeat(numberOfRows) +
+                    "\\s*</body>" +
+                    "\\s*</html>\\s*")
         }
 
         val DB_PATH: Path = Path.of("test.db")
