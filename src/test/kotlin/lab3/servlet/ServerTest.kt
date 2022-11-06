@@ -183,6 +183,41 @@ internal class ServerTest {
     }
 
     @Test
+    fun `price must be long`() {
+        val add = AddProductServlet()
+
+        val req1 = request(mapOf("name" to "k1", "price" to "nonNumber"))
+        val res1 = response()
+
+        assertThrows<NumberFormatException> {
+            add.doGet(req1, res1).apply {
+                res1.writer.flush()
+                res1.writer.close()
+            }
+        }
+
+        val get = GetProductsServlet()
+
+        val req2 = request(mapOf())
+        val res2 = response()
+
+        assertDoesNotThrow {
+            get.doGet(req2, res2).apply {
+                res2.writer.flush()
+                res2.writer.close()
+            }
+        }
+
+        val body = readResponse()
+
+        assert(getMatcher(0).matches(body))
+        assertContentEquals(
+            listOf(),
+            extractNameAndPrices(body, 0)
+        )
+    }
+
+    @Test
     fun `return 'unknown command' for query without param or param value is unknown`() {
         val query = QueryServlet()
 
