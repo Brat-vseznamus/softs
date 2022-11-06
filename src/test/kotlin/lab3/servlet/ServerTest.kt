@@ -55,7 +55,7 @@ internal class ServerTest {
     }
 
     @Test
-    fun `get from table after add return same values that inserted`() {
+    fun `get from table after add returns same values that inserted`() {
         val add = AddProductServlet()
         val name = "k1"
         val price = "1"
@@ -96,6 +96,54 @@ internal class ServerTest {
         assertContentEquals(
             extractNameAndPrices(body, 1),
             listOf(name to price)
+        )
+    }
+
+    @Test
+    fun `separate adds not overwrite values in table`() {
+        val add = AddProductServlet()
+        val get = GetProductsServlet()
+
+        for (i in 0..1) {
+            val name = "k$i"
+            val price = "$i"
+
+            val req = request(
+                mapOf(
+                    "name" to name,
+                    "price" to price
+                )
+            )
+
+            val res = response()
+
+            assertDoesNotThrow {
+                add.doGet(req, res).apply {
+                    res.writer.flush()
+                    res.writer.close()
+                }
+            }
+
+            assertEquals(res.status, HttpServletResponse.SC_OK)
+        }
+
+
+        val getRequest = request(mapOf())
+        val getResponse = response()
+
+        assertDoesNotThrow {
+            get.doGet(getRequest, getResponse).apply {
+                getResponse.writer.flush()
+                getResponse.writer.close()
+            }
+        }
+
+        val body = readResponse()
+
+        assert(GET_MATCHER(2).matches(body))
+        assertContentEquals(
+            extractNameAndPrices(body, 2),
+            listOf("k0" to "0", "k1" to "1")
         )
     }
 
