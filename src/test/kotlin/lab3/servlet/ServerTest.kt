@@ -11,9 +11,10 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.sql.DriverManager
 import java.util.stream.Collectors
-import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
+import kotlin.test.assertContentEquals
+import kotlin.test.assertEquals
 
 internal class ServerTest {
 
@@ -51,6 +52,51 @@ internal class ServerTest {
         val body = readResponse()
 
         assert(GET_MATCHER(0).matches(body))
+    }
+
+    @Test
+    fun `get from table after add return same values that inserted`() {
+        val add = AddProductServlet()
+        val name = "k1"
+        val price = "1"
+
+        val req1 = request(
+            mapOf(
+                "name" to name,
+                "price" to price
+            )
+        )
+
+        val res1 = response()
+
+        assertDoesNotThrow {
+            add.doGet(req1, res1).apply {
+                res1.writer.flush()
+                res1.writer.close()
+            }
+        }
+
+        assertEquals(res1.status, HttpServletResponse.SC_OK)
+
+        val get = GetProductsServlet()
+
+        val req2 = request(mapOf())
+        val res2 = response()
+
+        assertDoesNotThrow {
+            get.doGet(req2, res2).apply {
+                res2.writer.flush()
+                res2.writer.close()
+            }
+        }
+
+        val body = readResponse()
+
+        assert(GET_MATCHER(1).matches(body))
+        assertContentEquals(
+            extractNameAndPrices(body, 1),
+            listOf(name to price)
+        )
     }
 
     @AfterEach
