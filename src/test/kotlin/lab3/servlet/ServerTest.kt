@@ -239,7 +239,6 @@ internal class ServerTest {
                 "\\s*</body>" +
                 "\\s*</html>\\s*")
 
-        println(readResponse())
         assertEquals(HttpServletResponse.SC_OK, res.status)
         assert(expectedHTML.matches(readResponse()))
     }
@@ -271,7 +270,37 @@ internal class ServerTest {
                 "\\s*</body>" +
                 "\\s*</html>\\s*")
 
-        println(readResponse())
+        assertEquals(HttpServletResponse.SC_OK, res.status)
+        assert(expectedHTML.matches(readResponse()))
+    }
+
+    @Test
+    fun `count query command works correctly`() {
+        val command = "count"
+        val prices = listOf(1, 2, 3)
+
+        prepareData(prices)
+
+        val expectedResult = prices.size
+        val query = QueryServlet()
+
+        val req = request(mapOf("command" to command))
+        val res = response()
+
+        assertDoesNotThrow {
+            query.doGet(req, res).apply {
+                res.writer.flush()
+                res.writer.close()
+            }
+        }
+
+        val expectedHTML = Regex("\\s*<html>" +
+                "\\s*<body>" +
+                "\\s*Number of products:" +
+                "\\s*$expectedResult" +
+                "\\s*</body>" +
+                "\\s*</html>\\s*")
+
         assertEquals(HttpServletResponse.SC_OK, res.status)
         assert(expectedHTML.matches(readResponse()))
     }
