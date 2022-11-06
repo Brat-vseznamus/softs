@@ -244,6 +244,38 @@ internal class ServerTest {
         assert(expectedHTML.matches(readResponse()))
     }
 
+    @Test
+    fun `max query command works correctly`() {
+        val command = "max"
+        val prices = listOf(1, 2, 3)
+
+        prepareData(prices)
+
+        val expectedResult = max(prices)
+        val query = QueryServlet()
+
+        val req = request(mapOf("command" to command))
+        val res = response()
+
+        assertDoesNotThrow {
+            query.doGet(req, res).apply {
+                res.writer.flush()
+                res.writer.close()
+            }
+        }
+
+        val expectedHTML = Regex("\\s*<html>" +
+                "\\s*<body>" +
+                "\\s*<h1>Product with max price: </h1>" +
+                "\\s*k$expectedResult\t$expectedResult</br>" +
+                "\\s*</body>" +
+                "\\s*</html>\\s*")
+
+        println(readResponse())
+        assertEquals(HttpServletResponse.SC_OK, res.status)
+        assert(expectedHTML.matches(readResponse()))
+    }
+
     private fun prepareData(prices: List<Int>) {
         val add = AddProductServlet()
 
