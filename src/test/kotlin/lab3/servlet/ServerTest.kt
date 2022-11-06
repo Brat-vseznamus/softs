@@ -279,6 +279,35 @@ internal class ServerTest {
     }
 
     @Test
+    fun `min query command works correctly on empty table`() {
+        val command = "min"
+        val prices = emptyList<Int>()
+
+        prepareData(prices)
+
+        val query = QueryServlet()
+
+        val req = request(mapOf("command" to command))
+        val res = response()
+
+        assertDoesNotThrow {
+            query.doGet(req, res).apply {
+                res.writer.flush()
+                res.writer.close()
+            }
+        }
+
+        val expectedHTML = Regex("\\s*<html>" +
+                "\\s*<body>" +
+                "\\s*<h1>Product with min price: </h1>" +
+                "\\s*</body>" +
+                "\\s*</html>\\s*")
+
+        assertEquals(HttpServletResponse.SC_OK, res.status)
+        assert(expectedHTML.matches(readResponse()))
+    }
+
+    @Test
     fun `max query command works correctly`() {
         val command = "max"
         val prices = listOf(1, 2, 3)
@@ -302,6 +331,35 @@ internal class ServerTest {
                 "\\s*<body>" +
                 "\\s*<h1>Product with max price: </h1>" +
                 "\\s*k$expectedResult\t$expectedResult</br>" +
+                "\\s*</body>" +
+                "\\s*</html>\\s*")
+
+        assertEquals(HttpServletResponse.SC_OK, res.status)
+        assert(expectedHTML.matches(readResponse()))
+    }
+
+    @Test
+    fun `max query command works correctly on empty table`() {
+        val command = "max"
+        val prices = emptyList<Int>()
+
+        prepareData(prices)
+
+        val query = QueryServlet()
+
+        val req = request(mapOf("command" to command))
+        val res = response()
+
+        assertDoesNotThrow {
+            query.doGet(req, res).apply {
+                res.writer.flush()
+                res.writer.close()
+            }
+        }
+
+        val expectedHTML = Regex("\\s*<html>" +
+                "\\s*<body>" +
+                "\\s*<h1>Product with max price: </h1>" +
                 "\\s*</body>" +
                 "\\s*</html>\\s*")
 
