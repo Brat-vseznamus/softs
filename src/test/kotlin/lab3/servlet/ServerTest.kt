@@ -22,7 +22,7 @@ internal class ServerTest {
 
     @BeforeEach
     fun start() {
-        productService = ProductService(ServiceConfig("jdbc:sqlite:test.db"))
+        productService = ProductService(ServiceConfig("jdbc:sqlite:${DB_PATH.fileName}"))
     }
 
 
