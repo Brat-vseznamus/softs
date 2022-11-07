@@ -8,7 +8,6 @@ import lab3.repository.Entity;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -74,7 +73,6 @@ public abstract class AbstractTableImpl<E extends Entity> implements Table<E> {
             String sqlQuery = createSelectQuery(condition, orderBy, asc, limit);
             Statement stmt = c.createStatement();
             ResultSet rs = stmt.executeQuery(sqlQuery);
-            stmt.close();
 
             List<E> result = new ArrayList<>();
 
