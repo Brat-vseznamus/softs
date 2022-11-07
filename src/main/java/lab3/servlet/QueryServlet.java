@@ -9,6 +9,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
 
+import static lab3.html.HTMLGenerator.body;
+import static lab3.html.HTMLGenerator.br;
+import static lab3.html.HTMLGenerator.cover;
+import static lab3.html.HTMLGenerator.html;
+import static lab3.html.HTMLGenerator.lines;
+import static lab3.html.HTMLGenerator.writeHTML;
+
 /**
  * @author akirakozov
  */
@@ -23,72 +30,69 @@ public class QueryServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String command = request.getParameter("command");
 
-        if ("max".equals(command)) {
-            try {
-                response.getWriter().println("<html><body>");
-                response.getWriter().println("<h1>Product with max price: </h1>");
-
+        try {
+            if ("max".equals(command)) {
                 Optional<Product> result = productService.getProductWithMaxPrice();
 
-                result.ifPresent(p -> {
-                    String name = p.getName();
-                    long price = p.getPrice();
-                    try {
-                        response.getWriter().println(name + "\t" + price + "</br>");
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-
-                response.getWriter().println("</body></html>");
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        } else if ("min".equals(command)) {
-            try {
-                response.getWriter().println("<html><body>");
-                response.getWriter().println("<h1>Product with min price: </h1>");
-
+                writeHTML(
+                    response,
+                    html(
+                        body(
+                            lines(
+                                cover("h1", "Product with max price: "),
+                                result
+                                    .map(product -> br(product.getName() + "\t" + product.getPrice()))
+                                    .orElse("")
+                            )
+                        )
+                    )
+                );
+            } else if ("min".equals(command)) {
                 Optional<Product> result = productService.getProductWithMinPrice();
 
-                result.ifPresent(p -> {
-                    String name = p.getName();
-                    long price = p.getPrice();
-                    try {
-                        response.getWriter().println(name + "\t" + price + "</br>");
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                });
-
-                response.getWriter().println("</body></html>");
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+                writeHTML(
+                    response,
+                    html(
+                        body(
+                            lines(
+                                cover("h1", "Product with min price: "),
+                                result
+                                    .map(product -> br(product.getName() + "\t" + product.getPrice()))
+                                    .orElse("")
+                            )
+                        )
+                    )
+                );
+            } else if ("sum".equals(command)) {
+                writeHTML(
+                    response,
+                    html(
+                        body(
+                            lines(
+                                "Summary price: ",
+                                Long.toString(productService.getSumPriceOfProducts())
+                            )
+                        )
+                    )
+                );
+            } else if ("count".equals(command)) {
+                writeHTML(
+                    response,
+                    html(
+                        body(
+                            lines(
+                                "Number of products: ",
+                                Integer.toString(productService.getNumberOfProducts())
+                            )
+                        )
+                    )
+                );
+            } else {
+                writeHTML(response, "Unknown command: " + command);
             }
-        } else if ("sum".equals(command)) {
-            try {
-                response.getWriter().println("<html><body>");
-                response.getWriter().println("Summary price: ");
-                response.getWriter().println(productService.getSumPriceOfProducts());
-                response.getWriter().println("</body></html>");
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        } else if ("count".equals(command)) {
-            try {
-                response.getWriter().println("<html><body>");
-                response.getWriter().println("Number of products: ");
-                response.getWriter().println(productService.getNumberOfProducts());
-                response.getWriter().println("</body></html>");
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            response.getWriter().println("Unknown command: " + command);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-
-        response.setContentType("text/html");
-        response.setStatus(HttpServletResponse.SC_OK);
     }
 
 }
