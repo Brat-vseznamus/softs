@@ -1,5 +1,7 @@
 package lab3;
 
+import lab3.service.ServiceConfig;
+import lab3.service.products.ProductService;
 import lab3.servlet.AddProductServlet;
 import lab3.servlet.GetProductsServlet;
 import lab3.servlet.QueryServlet;
@@ -16,16 +18,7 @@ import java.sql.Statement;
  */
 public class Main {
     public static void main(String[] args) throws Exception {
-        try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
-            String sql = "CREATE TABLE IF NOT EXISTS PRODUCT" +
-                    "(ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL," +
-                    " NAME           TEXT    NOT NULL, " +
-                    " PRICE          INT     NOT NULL)";
-            Statement stmt = c.createStatement();
-
-            stmt.executeUpdate(sql);
-            stmt.close();
-        }
+        ProductService productService = new ProductService(new ServiceConfig("jdbc:sqlite:test.db"));
 
         Server server = new Server(8081);
 
@@ -33,9 +26,9 @@ public class Main {
         context.setContextPath("/");
         server.setHandler(context);
 
-        context.addServlet(new ServletHolder(new AddProductServlet()), "/add-product");
-        context.addServlet(new ServletHolder(new GetProductsServlet()),"/get-products");
-        context.addServlet(new ServletHolder(new QueryServlet()),"/query");
+        context.addServlet(new ServletHolder(new AddProductServlet(productService)), "/add-product");
+        context.addServlet(new ServletHolder(new GetProductsServlet(productService)),"/get-products");
+        context.addServlet(new ServletHolder(new QueryServlet(productService)),"/query");
 
         server.start();
         server.join();

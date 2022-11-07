@@ -1,5 +1,7 @@
 package lab3.servlet
 
+import lab3.service.ServiceConfig
+import lab3.service.products.ProductService
 import org.junit.jupiter.api.*
 import org.mockito.Mockito.*
 import java.io.BufferedWriter
@@ -16,28 +18,17 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
 internal class ServerTest {
+    private lateinit var productService: ProductService
 
     @BeforeEach
     fun start() {
-        DriverManager.getConnection("jdbc:sqlite:${DB_PATH.fileName}").use { c ->
-            val sql =
-                """
-                    CREATE TABLE IF NOT EXISTS PRODUCT(
-                        ID        INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                        NAME      TEXT    NOT NULL,
-                        PRICE     INT     NOT NULL
-                    )
-                """
-            val stmt = c.createStatement()
-            stmt.executeUpdate(sql)
-            stmt.close()
-        }
+        productService = ProductService(ServiceConfig("jdbc:sqlite:test.db"))
     }
 
 
     @Test
     fun `get from empty table returns answer with 0 rows`() {
-        val get = GetProductsServlet()
+        val get = GetProductsServlet(productService)
 
         val req = request(mapOf())
         val res = response()
@@ -55,7 +46,7 @@ internal class ServerTest {
 
     @Test
     fun `get from table after add returns same values that inserted`() {
-        val add = AddProductServlet()
+        val add = AddProductServlet(productService)
         val name = "k1"
         val price = "1"
 
@@ -77,7 +68,7 @@ internal class ServerTest {
 
         assertEquals(res1.status, HttpServletResponse.SC_OK)
 
-        val get = GetProductsServlet()
+        val get = GetProductsServlet(productService)
 
         val req2 = request(mapOf())
         val res2 = response()
@@ -100,8 +91,8 @@ internal class ServerTest {
 
     @Test
     fun `separate adds not overwrite values in table`() {
-        val add = AddProductServlet()
-        val get = GetProductsServlet()
+        val add = AddProductServlet(productService)
+        val get = GetProductsServlet(productService)
 
         for (i in 0..1) {
             val name = "k$i"
@@ -149,7 +140,7 @@ internal class ServerTest {
     // right now can be added without name because there is no checking for null 
     @Test
     fun `can't add without all required params`() {
-        val add = AddProductServlet()
+        val add = AddProductServlet(productService)
 
         val req1 = request(mapOf())
         val res1 = response()
@@ -161,7 +152,7 @@ internal class ServerTest {
             }
         }
 
-        val get = GetProductsServlet()
+        val get = GetProductsServlet(productService)
 
         val req2 = request(mapOf())
         val res2 = response()
@@ -184,7 +175,7 @@ internal class ServerTest {
 
     @Test
     fun `price must be long`() {
-        val add = AddProductServlet()
+        val add = AddProductServlet(productService)
 
         val req1 = request(mapOf("name" to "k1", "price" to "nonNumber"))
         val res1 = response()
@@ -196,7 +187,7 @@ internal class ServerTest {
             }
         }
 
-        val get = GetProductsServlet()
+        val get = GetProductsServlet(productService)
 
         val req2 = request(mapOf())
         val res2 = response()
@@ -219,7 +210,7 @@ internal class ServerTest {
 
     @Test
     fun `return 'unknown command' for query without param or param value is unknown`() {
-        val query = QueryServlet()
+        val query = QueryServlet(productService)
 
         val req1 = request(mapOf())
         val res1 = response()
@@ -255,7 +246,7 @@ internal class ServerTest {
         prepareData(prices)
 
         val expectedResult = min(prices)
-        val query = QueryServlet()
+        val query = QueryServlet(productService)
 
         val req = request(mapOf("command" to command))
         val res = response()
@@ -285,7 +276,7 @@ internal class ServerTest {
 
         prepareData(prices)
 
-        val query = QueryServlet()
+        val query = QueryServlet(productService)
 
         val req = request(mapOf("command" to command))
         val res = response()
@@ -315,7 +306,7 @@ internal class ServerTest {
         prepareData(prices)
 
         val expectedResult = max(prices)
-        val query = QueryServlet()
+        val query = QueryServlet(productService)
 
         val req = request(mapOf("command" to command))
         val res = response()
@@ -345,7 +336,7 @@ internal class ServerTest {
 
         prepareData(prices)
 
-        val query = QueryServlet()
+        val query = QueryServlet(productService)
 
         val req = request(mapOf("command" to command))
         val res = response()
@@ -375,7 +366,7 @@ internal class ServerTest {
         prepareData(prices)
 
         val expectedResult = prices.size
-        val query = QueryServlet()
+        val query = QueryServlet(productService)
 
         val req = request(mapOf("command" to command))
         val res = response()
@@ -406,7 +397,7 @@ internal class ServerTest {
         prepareData(prices)
 
         val expectedResult = prices.sum()
-        val query = QueryServlet()
+        val query = QueryServlet(productService)
 
         val req = request(mapOf("command" to command))
         val res = response()
@@ -430,7 +421,7 @@ internal class ServerTest {
     }
 
     private fun prepareData(prices: List<Int>) {
-        val add = AddProductServlet()
+        val add = AddProductServlet(productService)
 
         for (i in prices) {
             val name = "k$i"
