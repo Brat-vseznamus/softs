@@ -8,7 +8,6 @@ import java.io.BufferedWriter
 import java.io.PrintWriter
 import java.nio.file.Files
 import java.nio.file.Path
-import java.sql.DriverManager
 import java.util.Collections.max
 import java.util.Collections.min
 import java.util.stream.Collectors
