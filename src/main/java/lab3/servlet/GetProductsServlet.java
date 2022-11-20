@@ -1,43 +1,45 @@
 package lab3.servlet;
 
+import lab3.html.HTMLGenerator;
+import lab3.repository.products.Product;
+import lab3.service.products.ProductService;
+
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+
+import static lab3.html.HTMLGenerator.body;
+import static lab3.html.HTMLGenerator.br;
+import static lab3.html.HTMLGenerator.html;
+import static lab3.html.HTMLGenerator.lines;
+import static lab3.html.HTMLGenerator.writeHTML;
 
 /**
  * @author akirakozov
  */
 public class GetProductsServlet extends HttpServlet {
+    private final ProductService productService;
+
+    public GetProductsServlet(ProductService productService) {
+        this.productService = productService;
+    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        try {
-            try (Connection c = DriverManager.getConnection("jdbc:sqlite:test.db")) {
-                Statement stmt = c.createStatement();
-                ResultSet rs = stmt.executeQuery("SELECT * FROM PRODUCT");
-                response.getWriter().println("<html><body>");
-
-                while (rs.next()) {
-                    String  name = rs.getString("name");
-                    int price  = rs.getInt("price");
-                    response.getWriter().println(name + "\t" + price + "</br>");
-                }
-                response.getWriter().println("</body></html>");
-
-                rs.close();
-                stmt.close();
-            }
-
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-
-        response.setContentType("text/html");
-        response.setStatus(HttpServletResponse.SC_OK);
+        writeHTML(
+            response,
+            html(
+                body(
+                    lines(
+                        productService.getAllProducts()
+                            .stream()
+                            .map(product -> br(product.getName() + "\t" + product.getPrice()))
+                            .toList()
+                            .toArray(new String[0])
+                    )
+                )
+            )
+        );
     }
 }
